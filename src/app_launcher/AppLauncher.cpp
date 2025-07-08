@@ -1,0 +1,55 @@
+//AppLauncher.cpp
+#include "AppLauncher.hpp"
+#include <iostream>
+
+AppLauncher::AppLauncher() : main_box(Gtk::Orientation::VERTICAL),
+    app1("Navegador"), app2("Editor de texto"), app3("Terminal") {
+    
+    set_title("App Launcher");
+    // Añadir clase CSS personalizada
+    get_style_context()->add_class("app-launcher");
+
+    set_decorated(false);
+    set_resizable(false);
+    set_default_size(300, 200);
+
+    // Conectar señales
+    app1.signal_clicked().connect([this]() { launch_dummy_app("Navegador"); });
+    app2.signal_clicked().connect([this]() { launch_dummy_app("Editor"); });
+    app3.signal_clicked().connect([this]() { launch_dummy_app("Terminal"); });
+
+    // Agregar botones al box
+    main_box.append(app1);
+    main_box.append(app2);
+    main_box.append(app3);
+
+    // Agregar el box a la ventana
+    set_child(main_box);
+
+    // Inicialmente oculto
+    hide();
+
+}
+
+void AppLauncher::apply_theme(ThemeManager* theme) {
+    auto context = get_style_context();
+    
+    if (current_provider) {
+        context->remove_provider(current_provider);
+    }
+    
+    current_provider = theme->get_css_provider();
+    context->add_provider(current_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+}
+
+void AppLauncher::toggle_visibility() {
+    if (get_visible()) {
+        hide();
+    } else {
+        show();
+    }
+}
+
+void AppLauncher::launch_dummy_app(const Glib::ustring& name) {
+    std::cout << "Simulando Lanzamiento de: " << name << std::endl;
+}

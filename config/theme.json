@@ -1,0 +1,10 @@
+{
+  "primary_color": "#1e1e1e",
+  "accent_color": "#007acc",
+  "text_color": "#ffffff",
+  "button_hover": "#333333",
+  "font_family": "Sans",
+  "font_size": 16,
+  
+  "custom_css": "window.wallpaper-window { background-color: #000000; } window.app-launcher { background-color: #1a1a1a; }"
+}
