@@ -1,5 +1,6 @@
 //WallpaperWindow.cpp
 #include "WallpaperWindow.hpp"
+#include "../core/EventManager.hpp"
 #include <iostream>
 
 WallpaperWindow::WallpaperWindow(const std::string& wallpaper_path) 
@@ -27,6 +28,9 @@ WallpaperWindow::WallpaperWindow(const std::string& wallpaper_path)
     }
     
     set_child(image);
+
+    // Configurar eventos después de que todo esté inicializado
+    setup_event_listeners();
 }
 
 void WallpaperWindow::apply_theme(ThemeManager* theme) {
@@ -39,4 +43,46 @@ void WallpaperWindow::apply_theme(ThemeManager* theme) {
     
     current_provider = theme->get_css_provider();
     context->add_provider(current_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+}
+
+void WallpaperWindow::on_right_click_pressed(int n_press, double x, double y) {
+    std::cout << "Clic derecho detectado en posición: " << x << ", " << y << std::endl;
+    
+    // Disparar evento global de clic derecho
+    EventManager::get_instance().trigger_event("desktop_right_click");
+}
+
+void WallpaperWindow::refresh_desktop() {
+    // 1. Crear efecto de parpadeo
+    auto css_provider = Gtk::CssProvider::create();
+    css_provider->load_from_data(".wallpaper-window { opacity: 0.5; }");
+    
+    // Aplicar efecto temporal
+    auto style_context = get_style_context();
+    style_context->add_provider(css_provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+    
+    // 2. Forzar redibujado
+    queue_draw();
+    
+    // 3. Restaurar estado original después de un breve retraso
+    Glib::signal_timeout().connect_once([this, css_provider, style_context]() {
+        style_context->remove_provider(css_provider);
+        queue_draw();
+    }, 100);
+}
+
+Gtk::Widget* WallpaperWindow::get_root_widget() {
+    return &image; // o `this` si prefieres usar toda la ventana como ancla
+}
+
+void WallpaperWindow::setup_event_listeners() {
+    // Configurar gesto de clic derecho
+    right_click_gesture = Gtk::GestureClick::create();
+    right_click_gesture->set_button(GDK_BUTTON_SECONDARY); // Botón derecho
+    right_click_gesture->signal_pressed().connect(
+        sigc::mem_fun(*this, &WallpaperWindow::on_right_click_pressed));
+    
+    // Agregar el controlador al widget raíz (la ventana)
+    add_controller(right_click_gesture);
 }

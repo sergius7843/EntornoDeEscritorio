@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     Glib::signal_timeout().connect_seconds([&]() {
         std::cout << "Recargando tema..." << std::endl;
         core.reload_theme();
-        return true; // Solo se ejecuta una vez
+        return false; // Solo se ejecuta una vez, con false se ejecuta una vez, con true cada 5 segundos
     }, 5);
 
     return app->run(argc, argv);

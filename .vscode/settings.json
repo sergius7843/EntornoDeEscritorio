@@ -66,6 +66,10 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "forward_list": "cpp",
+        "fstream": "cpp"
     }
 }

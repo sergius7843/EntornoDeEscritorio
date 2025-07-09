@@ -5,6 +5,7 @@
 #include <gtkmm/application.h>
 #include "../config/ThemeManager.hpp"
 #include "../app_launcher/AppLauncher.hpp"
+#include "../context_menu/DesktopContextMenu.hpp"
 
 class CoreSystem {
 public:
@@ -16,6 +17,8 @@ public:
 
     void reload_theme();
 
+    void setup_context_menu();
+
 private:
     WallpaperWindow* wallpaper;
     TopPanel* top_panel;
@@ -23,4 +26,6 @@ private:
     Glib::RefPtr<Gtk::Application> app;
     ThemeManager* theme;    // Tema global compartido
     std::string theme_path;
+
+    DesktopContextMenu* context_menu; // Nuevo
 };
