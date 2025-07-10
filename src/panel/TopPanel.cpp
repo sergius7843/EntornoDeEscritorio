@@ -12,7 +12,6 @@
 // para aplicar los temas
 #include "../config/ThemeManager.hpp"
 
-
 TopPanel::TopPanel() : box(Gtk::Orientation::HORIZONTAL) {
     set_decorated(false);
     set_resizable(false);
@@ -21,54 +20,30 @@ TopPanel::TopPanel() : box(Gtk::Orientation::HORIZONTAL) {
     // Obtener el tamaño de la pantalla
     auto display = Gdk::Display::get_default();
     if (display) {
-        // Obtener la lista de monitores
         auto monitors = display->get_monitors();
         if (monitors && monitors->get_n_items() > 0) {
-            // Obtener el primer monitor usando get_object()
             auto monitor_obj = monitors->get_object(0);
             auto monitor = std::dynamic_pointer_cast<Gdk::Monitor>(monitor_obj);
             if (monitor) {
-                // CORRECCIÓN: get_geometry() requiere un parámetro Gdk::Rectangle
                 Gdk::Rectangle geometry;
                 monitor->get_geometry(geometry);
                 set_default_size(geometry.get_width(), 30);
             } else {
-                set_default_size(800, 30);
+                set_default_size(800, 30); // Fallback
             }
         } else {
-            // Fallback si no hay monitores
-            set_default_size(800, 30);
+            set_default_size(800, 30); // Fallback
         }
     } else {
-        // Fallback si no hay display
-        set_default_size(800, 30);
+        set_default_size(800, 30); // Fallback
     }
     
-    // Configurar CSS para el fondo negro
-    /* 
-    auto css_provider = Gtk::CssProvider::create();
-    css_provider->load_from_data(
-    "window { background-color: #000000; }"
-    "label { color: #ffffff; }"
-    "button { background-color: #333333; color: #ffffff; border: none; }"
-    "button:hover { background-color: #555555; }"
-    );
-    */
-
-    
-    // aplicando el tema
-    ThemeManager theme("config/theme.json");
-    auto style_context = get_style_context();
-    style_context->add_provider(theme.get_css_provider(), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-    //auto style_context = get_style_context();
-    //style_context->add_provider(css_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    // Eliminado: Creación redundante de ThemeManager
+    // El tema se aplicará externamente via apply_theme()
     
     // Configurar botón de menú
     menu_button.set_label("☰");
     menu_button.set_margin_end(10);
-
-    // app_launcher = new AppLauncher();
 
     menu_button.signal_clicked().connect([this]() {
         if (app_launcher) {
@@ -86,17 +61,17 @@ TopPanel::TopPanel() : box(Gtk::Orientation::HORIZONTAL) {
     box.append(menu_button);
     box.append(clock);
     
-    // ¡IMPORTANTE! Agregar el box a la ventana (esto faltaba en tu código original)
     set_child(box);
     
-    // Configurar el timer para actualizar la hora cada segundo
+    // Configurar timer
     timer_connection = Glib::signal_timeout().connect_seconds(
         sigc::mem_fun(*this, &TopPanel::update_time), 1
     );
 }
 
 TopPanel::~TopPanel() {
-    // delete app_launcher;
+    // Importante: Desconectar señal del timer
+    timer_connection.disconnect();
 }
 
 void TopPanel::set_app_launcher(AppLauncher* launcher) {
@@ -106,25 +81,27 @@ void TopPanel::set_app_launcher(AppLauncher* launcher) {
 void TopPanel::apply_theme(ThemeManager* theme) {
     auto context = get_style_context();
     
-    // Limpiar proveedor anterior si existe
+    // Limpiar proveedor anterior
     if (current_provider) {
         context->remove_provider(current_provider);
     }
     
-    context->add_provider(theme->get_css_provider(), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    // Aplicar nuevo proveedor
+    current_provider = theme->get_css_provider();
+    context->add_provider(current_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    
+    // Aplicar clases específicas
+    context->add_class("top-panel");
 }
 
 bool TopPanel::update_time() {
-    std::time_t t = std::time(nullptr);
-    std::tm* now = std::localtime(&t);
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_buf;
+    localtime_r(&in_time_t, &tm_buf); // Versión segura
+    
     std::ostringstream oss;
-    oss << std::put_time(now, "%H:%M:%S");
+    oss << std::put_time(&tm_buf, "%H:%M:%S");
     clock.set_text(oss.str());
-    return true;
+    return true; // Mantener activo
 }
-/*
-void WallpaperWindow::apply_theme(ThemeManager* theme) {
-    auto context = get_style_context();
-    context->add_provider(theme->get_css_provider(), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-}
-*/

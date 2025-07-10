@@ -4,8 +4,7 @@
 #include "EventManager.hpp"
 
 CoreSystem::CoreSystem(const std::string& theme_path) 
-    : wallpaper(nullptr), top_panel(nullptr), app_launcher(nullptr), theme(nullptr), 
-      theme_path(theme_path), context_menu(nullptr) {}
+    : theme_path(theme_path) {}
 
 CoreSystem::~CoreSystem() {
     stop();
@@ -13,72 +12,53 @@ CoreSystem::~CoreSystem() {
 
 void CoreSystem::start(Glib::RefPtr<Gtk::Application> app) {
     this->app = app;
-    theme = new ThemeManager(theme_path);
+    theme = std::make_unique<ThemeManager>(theme_path);
     
-    // Crear componentes
-    wallpaper = new WallpaperWindow("assets/wallpaper/wallpaperUno.jpg");
-    top_panel = new TopPanel();
-    app_launcher = new AppLauncher(); // Nuevo
+    wallpaper = std::make_unique<WallpaperWindow>("assets/wallpaper/wallpaperUno.jpg");
+    top_panel = std::make_unique<TopPanel>();
+    app_launcher = std::make_unique<AppLauncher>();
+    context_menu = std::make_unique<DesktopContextMenu>();
 
-    // Crear menu contextual
-    context_menu = new DesktopContextMenu();
-    //app->add_window(*context_menu);
-
-    // IMPORTANTE: Establecer el wallpaper como padre del popover
     context_menu->set_parent(*wallpaper);
-
-    // Inyectar dependencias
-    top_panel->set_app_launcher(app_launcher);
+    top_panel->set_app_launcher(app_launcher.get());
     
-    // Aplicar tema
-    wallpaper->apply_theme(theme);
-    top_panel->apply_theme(theme);
-    app_launcher->apply_theme(theme); // Nuevo
+    // CORRECCIÓN: Usar theme.get() en lugar de theme
+    wallpaper->apply_theme(theme.get());
+    top_panel->apply_theme(theme.get());
+    app_launcher->apply_theme(theme.get());
     
-    // Registrar ventanas
     app->add_window(*wallpaper);
     app->add_window(*top_panel);
-    app->add_window(*app_launcher); // Registrar AppLauncher
+    app->add_window(*app_launcher);
     
-    // Mostrar componentes
     wallpaper->show();
     top_panel->show();
-    app_launcher->hide(); // Inicialmente oculto
+    app_launcher->hide();
 
-    // Configurar menu contextual despues de que todo este inicializado
     setup_context_menu();
 }
 
 void CoreSystem::stop() {
-    if (top_panel) {
-        // No eliminar app_launcher aquí, CoreSystem es el dueño
-        delete top_panel;
-        top_panel = nullptr;
+    if(app) {
+        if(top_panel) app->remove_window(*top_panel);
+        if(wallpaper) app->remove_window(*wallpaper);
+        if(app_launcher) app->remove_window(*app_launcher);
     }
-    if (wallpaper) {
-        delete wallpaper;
-        wallpaper = nullptr;
-    }
-    if (app_launcher) { // Nuevo
-        delete app_launcher;
-        app_launcher = nullptr;
-    }
-    if (context_menu) {
-        delete context_menu;
-        context_menu = nullptr;
-    }
-    if(theme) {
-        delete theme;
-        theme = nullptr;
-    }
+
+    context_menu.reset();
+    app_launcher.reset();
+    top_panel.reset();
+    wallpaper.reset();
+    theme.reset();
 }
 
 void CoreSystem::reload_theme() {
     if (theme) {
         theme->reload();
-        wallpaper->apply_theme(theme);
-        top_panel->apply_theme(theme);
-        app_launcher->apply_theme(theme); // Nuevo
+        // CORRECCIÓN: Usar theme.get() en lugar de theme
+        wallpaper->apply_theme(theme.get());
+        top_panel->apply_theme(theme.get());
+        app_launcher->apply_theme(theme.get());
     }
 }
 

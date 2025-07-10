@@ -7,8 +7,6 @@ DesktopContextMenu::DesktopContextMenu()
     set_child(menu_box);
     menu_box.set_margin(10);
     menu_box.set_spacing(5);
-    
-    // Configurar el popover
     set_autohide(true);
     set_has_arrow(false);
 }
@@ -18,7 +16,7 @@ void DesktopContextMenu::add_item(const MenuItem& item) {
 }
 
 void DesktopContextMenu::setup_menu() {
-    // Limpiar menú existente
+    // Limpiar widgets existentes usando el método correcto de GTK4
     auto child = menu_box.get_first_child();
     while (child) {
         auto next = child->get_next_sibling();
@@ -26,7 +24,7 @@ void DesktopContextMenu::setup_menu() {
         child = next;
     }
 
-    // Crear nuevos botones
+    // Crear nuevos widgets usando make_managed para gestión automática
     for (const auto& item : items) {
         auto button = Gtk::make_managed<Gtk::Button>();
         
@@ -39,9 +37,10 @@ void DesktopContextMenu::setup_menu() {
             button->set_label(item.label);
         }
         
+        // Capturar 'this' de forma segura
         button->signal_clicked().connect([this, item]() {
             item.action();
-            this->popdown(); // Cerrar menú después de selección
+            popdown();
         });
         
         menu_box.append(*button);
@@ -49,15 +48,14 @@ void DesktopContextMenu::setup_menu() {
 }
 
 void DesktopContextMenu::show_at_position(double x, double y) {
-    setup_menu(); // Reconstruir menú
-    
-    // Establecer la posición del popover
-    Gdk::Rectangle rect;
-    rect.set_x(static_cast<int>(x));
-    rect.set_y(static_cast<int>(y));
-    rect.set_width(1);
-    rect.set_height(1);
-    
+    setup_menu();
+    Gdk::Rectangle rect(static_cast<int>(x), static_cast<int>(y), 1, 1);
     set_pointing_to(rect);
     popup();
+}
+
+void DesktopContextMenu::set_parent_widget(Gtk::Widget* parent) {
+    if (parent) {
+        set_parent(*parent);
+    }
 }

@@ -10,7 +10,7 @@ public:
     TopPanel();
     ~TopPanel();
     
-    void set_app_launcher(AppLauncher* launcher); // Nuevo
+    void set_app_launcher(AppLauncher* launcher); // Puntero sin ownership
     void apply_theme(ThemeManager* theme);
 
 private:
@@ -20,7 +20,7 @@ private:
     bool update_time();
     
     Gtk::Button menu_button;
-    AppLauncher* app_launcher = nullptr; // Inicializado como nullptr
+    AppLauncher* app_launcher = nullptr; // Puntero observador (no propietario)
 
     // Para manejar CSS
     Glib::RefPtr<Gtk::CssProvider> current_provider;
