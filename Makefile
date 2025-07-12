@@ -15,7 +15,9 @@ SOURCES = main.cpp \
           src/core/CoreSystem.cpp \
           src/core/EventManager.cpp \
           src/context_menu/DesktopContextMenu.cpp \
-          src/config/ThemeManager.cpp 
+          src/config/ThemeManager.cpp \
+          src/utils/CSSParser.cpp \
+          src/config/ThemeLoader.cpp
 
 # Archivos objeto
 OBJECTS = $(SOURCES:.cpp=.o)

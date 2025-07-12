@@ -2,6 +2,7 @@
 #include "DesktopContextMenu.hpp"
 #include <iostream>
 
+
 DesktopContextMenu::DesktopContextMenu()
     : menu_box(Gtk::Orientation::VERTICAL) {
     set_child(menu_box);
@@ -15,7 +16,7 @@ void DesktopContextMenu::add_item(const MenuItem& item) {
     items.push_back(item);
 }
 
-void DesktopContextMenu::setup_menu() {
+void DesktopContextMenu::setup_menu() { 
     // Limpiar widgets existentes usando el método correcto de GTK4
     auto child = menu_box.get_first_child();
     while (child) {
@@ -57,5 +58,20 @@ void DesktopContextMenu::show_at_position(double x, double y) {
 void DesktopContextMenu::set_parent_widget(Gtk::Widget* parent) {
     if (parent) {
         set_parent(*parent);
+    }
+}
+
+void DesktopContextMenu::apply_theme(ThemeManager* theme) {
+    auto context = get_style_context();
+    
+    // Limpiar proveedor anterior si existe
+    if (current_provider) {
+        context->remove_provider(current_provider);
+    }
+    
+    // Obtener proveedor específico para desktop-context-menu
+    current_provider = theme->get_component_provider("desktop-context-menu");
+    if (current_provider) {
+        context->add_provider(current_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     }
 }

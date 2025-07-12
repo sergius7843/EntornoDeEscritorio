@@ -86,12 +86,10 @@ void TopPanel::apply_theme(ThemeManager* theme) {
         context->remove_provider(current_provider);
     }
     
-    // Aplicar nuevo proveedor
-    current_provider = theme->get_css_provider();
-    context->add_provider(current_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    
-    // Aplicar clases específicas
-    context->add_class("top-panel");
+    current_provider = theme->get_component_provider("top-panel");
+    if (current_provider) {
+        context->add_provider(current_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    }
 }
 
 bool TopPanel::update_time() {

@@ -48,14 +48,15 @@ AppLauncher::~AppLauncher() {
 void AppLauncher::apply_theme(ThemeManager* theme) {
     auto context = get_style_context();
     
-    // Limpiar proveedor anterior
     if (current_provider) {
         context->remove_provider(current_provider);
     }
     
-    // Aplicar nuevo proveedor
-    current_provider = theme->get_css_provider();
-    context->add_provider(current_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    // Obtener proveedor específico para app-launcher
+    current_provider = theme->get_component_provider("app-launcher");
+    if (current_provider) {
+        context->add_provider(current_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    }
 }
 
 void AppLauncher::toggle_visibility() {

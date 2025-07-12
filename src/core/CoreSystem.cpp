@@ -4,7 +4,7 @@
 #include "EventManager.hpp"
 
 CoreSystem::CoreSystem(const std::string& theme_path) 
-    : theme_path(theme_path) {}
+    : theme_path(theme_path) {}   
 
 CoreSystem::~CoreSystem() {
     stop();
@@ -12,7 +12,7 @@ CoreSystem::~CoreSystem() {
 
 void CoreSystem::start(Glib::RefPtr<Gtk::Application> app) {
     this->app = app;
-    theme = std::make_unique<ThemeManager>(theme_path);
+    theme = std::make_unique<ThemeManager>(theme_path); // Usamos theme sin guión bajo
     
     wallpaper = std::make_unique<WallpaperWindow>("assets/wallpaper/wallpaperUno.jpg");
     top_panel = std::make_unique<TopPanel>();
@@ -22,10 +22,11 @@ void CoreSystem::start(Glib::RefPtr<Gtk::Application> app) {
     context_menu->set_parent(*wallpaper);
     top_panel->set_app_launcher(app_launcher.get());
     
-    // CORRECCIÓN: Usar theme.get() en lugar de theme
+    // Aplicar tema a todos los componentes
     wallpaper->apply_theme(theme.get());
     top_panel->apply_theme(theme.get());
     app_launcher->apply_theme(theme.get());
+    context_menu->apply_theme(theme.get());
     
     app->add_window(*wallpaper);
     app->add_window(*top_panel);
@@ -54,11 +55,13 @@ void CoreSystem::stop() {
 
 void CoreSystem::reload_theme() {
     if (theme) {
-        theme->reload();
-        // CORRECCIÓN: Usar theme.get() en lugar de theme
+        theme->reload(); // Recargar el tema
+        
+        // Vuelve a aplicar el tema a todos los componentes
         wallpaper->apply_theme(theme.get());
         top_panel->apply_theme(theme.get());
         app_launcher->apply_theme(theme.get());
+        context_menu->apply_theme(theme.get());
     }
 }
 

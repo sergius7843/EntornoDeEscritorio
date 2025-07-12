@@ -70,6 +70,8 @@
         "any": "cpp",
         "codecvt": "cpp",
         "forward_list": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "regex": "cpp",
+        "bitset": "cpp"
     }
 }

@@ -1,0 +1,16 @@
+{
+  "global": {
+    "primary_color": "#1e1e1e",
+    "accent_color": "#007acc",
+    "text_color": "#ffffff",
+    "button_hover": "#333333",
+    "font_family": "Sans",
+    "font_size": 30
+  },
+  "components": {
+    "top-panel": "top-panel.css",
+    "app-launcher": "app-launcher.css",
+    "desktop-context-menu": "context-menu.css",
+    "wallpaper-window": "wallpaper.css"
+  }
+}

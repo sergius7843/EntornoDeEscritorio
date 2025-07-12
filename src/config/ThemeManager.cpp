@@ -4,76 +4,119 @@
 #include <sstream>
 #include <iostream>
 
-ThemeManager::ThemeManager(const std::string& config_path)
-    : config_path(config_path), css_provider(Gtk::CssProvider::create()) {
-    load_theme();
-    generate_css();
+namespace fs = std::filesystem;
+
+ThemeManager::ThemeManager(const std::string& theme_dir)
+    : theme_dir_(theme_dir), css_parser_(std::make_unique<CSSParser>()) {
+    reload();
 }
 
-void ThemeManager::load_theme() {
+void ThemeManager::reload() {
+    load_global_theme();
+    load_component_styles();
+}
+
+void ThemeManager::reload_component(const std::string& component_name) {
+    // Recargar solo un componente específico
+    std::string config_path = theme_dir_ + "/theme.json";
     std::ifstream file(config_path);
+    
     if (!file) {
         std::cerr << "No se pudo abrir " << config_path << std::endl;
         return;
     }
-
+    
     try {
-        file >> theme_data;
+        nlohmann::json theme_config;
+        file >> theme_config;
+        
+        if (theme_config["components"].contains(component_name)) {
+            std::string css_path = theme_dir_ + "/" + 
+                                  theme_config["components"][component_name].get<std::string>();
+            process_component_css(component_name, css_path);
+        }
     } catch (const std::exception& e) {
-        std::cerr << "Error leyendo el JSON: " << e.what() << std::endl;
+        std::cerr << "Error recargando componente: " << e.what() << std::endl;
     }
 }
 
-void ThemeManager::generate_css() {
-    std::ostringstream css;
-
-    std::string bg = theme_data.value("primary_color", "#1e1e1e");
-    std::string fg = theme_data.value("text_color", "#ffffff");
-    std::string accent = theme_data.value("accent_color", "#007acc");
-    std::string hover = theme_data.value("button_hover", "#444444");
-    std::string font_family = theme_data.value("font_family", "Sans");
-    int font_size = theme_data.value("font_size", 10);
-
-
-    css << "* {\n"
-        << "  background-color: " << bg << ";\n"
-        << "  color: " << fg << ";\n"
-        << "  font-family: " << font_family << ";\n"
-        << "  font-size: " << font_size << "px;\n"
-        << "}\n"
-        << "button:hover {\n"
-        << "  background-color: " << hover << ";\n"
-        << "}\n"
-        << "window.top-panel {\n"
-        << "  background-color: " << accent << ";\n"
-        << "}";
-
+void ThemeManager::load_global_theme() {
+    std::string config_path = theme_dir_ + "/theme.json";
+    std::ifstream file(config_path);
+    
+    if (!file) {
+        std::cerr << "No se pudo abrir " << config_path << std::endl;
+        return;
+    }
+    
     try {
-        css_provider->load_from_data(css.str());
-    } catch (const Glib::Error& e) {
-        std::cerr << "Error aplicando CSS: " << e.what() << std::endl;
+        nlohmann::json theme_config;
+        file >> theme_config;
+        global_vars_ = theme_config["global"];
+    } catch (const std::exception& e) {
+        std::cerr << "Error leyendo el JSON global: " << e.what() << std::endl;
     }
+}
 
-    // Si existe custom_css en el JSON, lo agregamos crudo al final
-    if (theme_data.contains("custom_css")) {
-        css << theme_data["custom_css"].get<std::string>() << "\n";
+void ThemeManager::load_component_styles() {
+    std::string config_path = theme_dir_ + "/theme.json";
+    std::ifstream file(config_path);
+    
+    if (!file) {
+        std::cerr << "No se pudo abrir " << config_path << std::endl;
+        return;
     }
+    
     try {
-        // Crear NUEVO proveedor CSS en lugar de reutilizar
-        css_provider = Gtk::CssProvider::create();
-        css_provider->load_from_data(css.str());
-    } catch (const Glib::Error& e) {
-        std::cerr << "Error aplicando CSS: " << e.what() << std::endl;
+        nlohmann::json theme_config;
+        file >> theme_config;
+        
+        if (!theme_config.contains("components")) {
+            std::cerr << "No se encontró la sección 'components' en theme.json" << std::endl;
+            return;
+        }
+        
+        auto components = theme_config["components"];
+        for (auto& [component_name, css_file] : components.items()) {
+            std::string css_path = theme_dir_ + "/" + css_file.get<std::string>();
+            process_component_css(component_name, css_path);
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error cargando componentes: " << e.what() << std::endl;
     }
-
 }
 
-void ThemeManager::reload() {
-    load_theme();
-    generate_css();     // Regenera completamente el css
+void ThemeManager::process_component_css(const std::string& component_name, const std::string& css_path) {
+    if (!fs::exists(css_path)) {
+        std::cerr << "Archivo CSS no encontrado: " << css_path << std::endl;
+        return;
+    }
+    
+    std::ifstream css_file(css_path);
+    std::stringstream buffer;
+    buffer << css_file.rdbuf();
+    std::string css_content = buffer.str();
+    
+    // Procesar variables CSS
+    std::string processed_css = css_parser_->parse(css_content, global_vars_);
+    
+    auto provider = Gtk::CssProvider::create();
+    try {
+        provider->load_from_data(processed_css);
+        component_providers_[component_name] = provider;
+    } catch (const Glib::Error& e) {
+        std::cerr << "Error aplicando CSS para " << component_name << ": " << e.what() << std::endl;
+    }
 }
 
+Glib::RefPtr<Gtk::CssProvider> ThemeManager::get_component_provider(const std::string& component_name) const {
+    auto it = component_providers_.find(component_name);
+    if (it != component_providers_.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
 
-Glib::RefPtr<Gtk::CssProvider> ThemeManager::get_css_provider() const {
-    return css_provider;
+const nlohmann::json& ThemeManager::get_global_vars() const {
+    return global_vars_;
 }

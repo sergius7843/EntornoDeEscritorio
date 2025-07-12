@@ -1,10 +1,30 @@
 {
-  "primary_color": "#1e1e1e",
-  "accent_color": "#007acc",
-  "text_color": "#ffffff",
-  "button_hover": "#333333",
-  "font_family": "Sans",
-  "font_size": 16,
-  
-  "custom_css": "window.wallpaper-window { background-color: #000000; } window.app-launcher { background-color: #1a1a1a; }"
+  "global": {
+    "primary_color": "#1e1e1e",
+    "text_color": "#ffffff",
+    "accent_color": "#007acc",
+    "button_hover": "#444444",
+    "font_family": "Sans",
+    "font_size": 10
+  },
+  "components": {
+    "TopPanel": {
+      "background": "#007acc",
+      "height": 40,
+      "text_color": "#ffffff"
+    },
+    "AppLauncher": {
+      "background": "#75d9b8",
+      "button_background": "#5ab39d",
+      "button_hover": "#489c85"
+    },
+    "DesktopContextMenu": {
+      "background": "#2e2e2e",
+      "border_radius": 8,
+      "item_hover": "#3e3e3e"
+    },
+    "WallpaperWindow": {
+      "opacity": 1.0
+    }
+  }
 }

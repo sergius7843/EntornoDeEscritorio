@@ -1,7 +1,9 @@
 //WallpaperWindow.cpp
 #include "WallpaperWindow.hpp"
 #include "../core/EventManager.hpp"
+#include "../config/ThemeManager.hpp"
 #include <iostream>
+
 
 
 WallpaperWindow::WallpaperWindow(const std::string& wallpaper_path) 
@@ -45,9 +47,11 @@ void WallpaperWindow::apply_theme(ThemeManager* theme) {
         context->remove_provider(current_provider);
     }
     
-    // Aplicar nuevo proveedor
-    current_provider = theme->get_css_provider();
-    context->add_provider(current_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    // Obtener el proveedor específico para este componente
+    current_provider = theme->get_component_provider("wallpaper-window");
+    if (current_provider) {
+        context->add_provider(current_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    }
 }
 
 void WallpaperWindow::on_right_click_pressed(int n_press, double x, double y) {

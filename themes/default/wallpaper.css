@@ -1,0 +1,12 @@
+/* wallpaper.css */
+.wallpaper-window {
+    background-color: #000000;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Efecto para la actualización */
+.wallpaper-window.refreshing {
+    opacity: 0.5;
+    transition: opacity 0.2s ease-in-out;
+}
