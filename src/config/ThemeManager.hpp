@@ -1,4 +1,3 @@
-// ThemeManager.hpp
 #pragma once
 #include <gtkmm.h>
 #include <nlohmann/json.hpp>
@@ -6,8 +5,8 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
-#include "ThemeLoader.hpp" // Nuevo: para carga de temas
-#include "../utils/CSSParser.hpp"   // Nuevo: para procesar variables CSS
+#include "ThemeLoader.hpp"             // Para carga dinámica de temas
+#include "../utils/CSSParser.hpp"      // Procesamiento de variables CSS
 
 class ThemeManager {
 public:
@@ -28,4 +27,6 @@ private:
     nlohmann::json global_vars_;
     std::unordered_map<std::string, Glib::RefPtr<Gtk::CssProvider>> component_providers_;
     std::unique_ptr<CSSParser> css_parser_;
+
+    std::unique_ptr<ThemeLoader> theme_loader_; 
 };

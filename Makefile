@@ -1,7 +1,7 @@
 # Makefile
 CXX = g++
-CXXFLAGS = -std=c++17 `pkg-config gtkmm-4.0 --cflags`
-LDFLAGS = `pkg-config gtkmm-4.0 --libs`
+CXXFLAGS = -std=c++17 `pkg-config gtkmm-4.0 giomm-2.68 --cflags`
+LDFLAGS = `pkg-config gtkmm-4.0 giomm-2.68 --libs`
 
 # Directorio de salida
 BUILD_DIR = build
@@ -9,15 +9,15 @@ TARGET = $(BUILD_DIR)/entorno
 
 # Archivos fuente
 SOURCES = main.cpp \
-          src/wallpaper/WallpaperWindow.cpp \
-          src/panel/TopPanel.cpp \
-          src/app_launcher/AppLauncher.cpp \
-          src/core/CoreSystem.cpp \
-          src/core/EventManager.cpp \
-          src/context_menu/DesktopContextMenu.cpp \
-          src/config/ThemeManager.cpp \
-          src/utils/CSSParser.cpp \
-          src/config/ThemeLoader.cpp
+	src/wallpaper/WallpaperWindow.cpp \
+	src/panel/TopPanel.cpp \
+	src/app_launcher/AppLauncher.cpp \
+	src/core/CoreSystem.cpp \
+	src/core/EventManager.cpp \
+	src/context_menu/DesktopContextMenu.cpp \
+	src/config/ThemeManager.cpp \
+	src/utils/CSSParser.cpp \
+	src/config/ThemeLoader.cpp
 
 # Archivos objeto
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -27,7 +27,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CXX) -o $@ $^ $(LDFLAGS)
 
 # Regla para compilar archivos .cpp a .o
 %.o: %.cpp

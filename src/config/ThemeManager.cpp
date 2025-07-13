@@ -1,5 +1,6 @@
 // ThemeManager.cpp
 #include "ThemeManager.hpp"
+#include "ThemeLoader.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -8,6 +9,19 @@ namespace fs = std::filesystem;
 
 ThemeManager::ThemeManager(const std::string& theme_dir)
     : theme_dir_(theme_dir), css_parser_(std::make_unique<CSSParser>()) {
+    
+    // Crear ThemeLoader
+    theme_loader_ = std::make_unique<ThemeLoader>(theme_dir_);
+    
+    // Registrar recarga global
+    theme_loader_->register_component("global", [this](const std::string&) {
+        this->reload();
+    });
+    
+    // Iniciar monitoreo
+    theme_loader_->watch_for_changes();
+
+    // Cargar tema inicial
     reload();
 }
 
@@ -17,7 +31,6 @@ void ThemeManager::reload() {
 }
 
 void ThemeManager::reload_component(const std::string& component_name) {
-    // Recargar solo un componente específico
     std::string config_path = theme_dir_ + "/theme.json";
     std::ifstream file(config_path);
     
@@ -32,7 +45,7 @@ void ThemeManager::reload_component(const std::string& component_name) {
         
         if (theme_config["components"].contains(component_name)) {
             std::string css_path = theme_dir_ + "/" + 
-                                  theme_config["components"][component_name].get<std::string>();
+                                   theme_config["components"][component_name].get<std::string>();
             process_component_css(component_name, css_path);
         }
     } catch (const std::exception& e) {
@@ -80,11 +93,19 @@ void ThemeManager::load_component_styles() {
         for (auto& [component_name, css_file] : components.items()) {
             std::string css_path = theme_dir_ + "/" + css_file.get<std::string>();
             process_component_css(component_name, css_path);
+            
+            // Registrar componente en ThemeLoader para monitoreo
+            if (theme_loader_) {
+                theme_loader_->register_component(component_name, [this, component_name](const std::string&) {
+                    this->reload_component(component_name);
+                });
+            }
         }
     } catch (const std::exception& e) {
         std::cerr << "Error cargando componentes: " << e.what() << std::endl;
     }
 }
+
 
 void ThemeManager::process_component_css(const std::string& component_name, const std::string& css_path) {
     if (!fs::exists(css_path)) {
